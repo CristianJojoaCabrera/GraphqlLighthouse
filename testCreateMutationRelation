@@ -1,0 +1,31 @@
+
+input UpdateEvaluationInput {
+    id:ID
+    state:Int
+    comments:String
+    user_id_created:Int
+    user_id_updated:Int
+}
+input OptionsEvaluationRelation{
+    connect:ID 
+    update: UpdateEvaluationInput
+}
+input CreateDetailsInput{
+    animal_id:Int 
+    chapeta:String
+    diagnostic:String
+    fit:Int
+    synchronized:String
+    other_procedures:String
+    comments:String
+    attendant:String
+    local_id:Int @rules(apply: ["required"])
+    user_id_updated:ID
+    user_id_created:ID
+    evaluationn:OptionsEvaluationRelation
+}
+type Mutation  {
+    createEvaluationDetails(
+        input:CreateDetailsInput! @spread
+    ):EvaluationDetail @create
+}
