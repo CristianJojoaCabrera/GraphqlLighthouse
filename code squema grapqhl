@@ -1,0 +1,400 @@
+"A datetime string with format 'Y-m-d H:i:s', e.g. '2018-01-01 13:00:00'."
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+"A date string with format 'Y-m-d', e.g. '2011-05-23'."
+scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
+#input createEvaluationDetailsInput{
+    #id:Int
+    #connect:Int @rules(apply: ["required"])
+    #animal_id:Int 
+    #chapeta:String
+    #diagnostic:String
+    #fit:String
+    #synchronized:String
+    #other_procedures:String
+    #comments:String
+    #attendant:String
+    #local_id:Int @rules(apply: ["required"])
+#}
+input CreateEvalaluationDetailsInput{
+    connect:Int
+    animal_id:Int 
+    chapeta:String
+    diagnostic:String
+    fit:String
+    synchronized:String
+    other_procedures:String
+    comments:String
+    attendant:String
+    local_id:Int @rules(apply: ["required"])
+    user_id_updated:ID
+    user_id_created:ID
+
+}
+input CreateEvalaluationDetailsRelation{
+    create:[CreateEvalaluationDetailsInput]
+}
+
+input CreateDetailsInput{
+    animal_id:Int 
+    chapeta:String
+    diagnostic:String
+    fit:Int
+    synchronized:String
+    other_procedures:String
+    comments:String
+    attendant:String
+    local_id:Int @rules(apply: ["required"])
+    user_id_updated:ID
+    user_id_created:ID
+    evaluationn:CreateEvaluationRelation
+}
+input UpdateEvaluationInput {
+    id:ID
+    state:Int
+    comments:String
+    user_id_created:Int
+    user_id_updated:Int
+    #details:[createEvaluationDetailsInput
+    #deatails:CreateEvalaluationDetailsRelation
+
+}
+input CreateEvaluationRelation{
+    connect:ID 
+    #create: createEvaluationInput
+    update: UpdateEvaluationInput
+}
+type Query @middleware(checks:["auth:api"]) {
+    #orders(approved: Int @where(operator:"=")): [Order!]!  @paginate(type: "paginator" model: "App\\Order")
+    order(id: ID @eq): Order @find(model: "App\\Order")
+    #orderDetails: [OrderDetail!]! @paginate(type: "paginator" model: "App\\OrderDetail")
+}
+extend type Query{
+    orders(approved: Int @where(operator:"=")): [Order!]!  @paginate(type: "paginator" model: "App\\Order")
+}
+#@middleware(checks:["auth:api"])
+type Mutation  {
+    #createEvaluationDetails(
+    #    input:[createEvaluationInput]
+    #):notificationEvalautionCreatUpdate #@create(model: "App\\Evaluation")
+    createEvaluationDetails(
+        input:CreateDetailsInput! @spread
+    ):EvaluationDetail @create
+    
+
+}
+type Department{
+    id:ID!
+    name:String
+}
+type Municipality{
+    id:ID!
+    name:String
+}
+type Event{
+    id:ID!
+    name:String
+}
+type Agenda{
+    id:ID
+    start_date:String
+    end_date:String
+    all_day:String
+    name_client:String
+    event_id:ID
+    event:Event
+    employee_id:ID
+    user:User
+    other_user_id:ID
+    other_user:OtherUser
+    department_id:ID
+    department:Department
+    municipality_id:ID
+    municipality:Municipality
+    order_id:ID
+    order:Order
+    address:String
+    observation:String
+    numAgenda:String
+    name_client:String
+    name_local:String
+
+}
+
+type OtherUser {
+    id:ID!
+    name:String
+}
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    created_at: DateTime!
+    updated_at: DateTime!
+}
+type DocumentType{
+    id: ID!
+    name: String!
+}
+type Local{
+    id: ID!
+    name: String!
+    city: String!
+    department: String!
+}
+type Client {
+    id:ID!
+    identification_type_id:ID
+    documentType:DocumentType
+    bussiness_name:String
+    address:String
+    cellphone:String
+    email:String
+    contact:String
+    position:String
+    citiesOne:Municipality
+    departmentOne:Department
+    quota:String
+    payment_deadline:String
+    locals:[Local]
+}
+type Order {
+    id:ID!
+    client_id:ID
+    project:String
+    observation:String
+    date:Date
+    client:Client @hasOne
+    approved:String
+    details:[OrderDetail] @hasMany
+    subservices:[Subservices] @hasMany
+    agenda:[Agenda] @hasMany
+}
+type Service {
+    id: ID!
+    name:String
+}
+type Subservice {
+    id: ID!
+    name:String
+}
+type Subservices {
+    id: ID!
+    order_id:ID
+    service_id:ID
+    subservice_id:ID
+    service:Service
+    subservice:Subservice
+    value:String
+}
+type OrderDetail {
+    id:ID!
+    order_id:ID
+    local_id:ID
+    local:Local
+    apply_evaluation:String
+    invoiced:String
+    invoiced_event:String
+    evaluation:Evaluation
+    aspiration:Aspiration
+    production:Production
+    transfer:Transfer
+    diagnostic:Diagnostic
+    sexage:Sexage
+    delivery:Delivery
+}
+type Evaluation {
+    id:ID!
+    order_detail_id:ID
+    comments:String
+    state:String
+    date:Date
+    received_by:String
+    identification_number:String
+    details:[EvaluationDetail]@hasMany(model:"App\\EvaluationDetail")
+    url_signing:String
+}
+type EvaluationDetail {
+    id:ID
+    connect:ID
+    animal_id:String
+    chapeta:String
+    diagnostic:String
+    fit:String
+    synchronized:String
+    other_procedures:String
+    comments:String
+    attendant:String
+    local:Local
+    evaluationn:Evaluation @belongsTo(model:"App\\Evaluation")
+}
+type Aspiration {
+    id:ID!
+    order_detail_id:String
+    synchronized_receivers:String
+    medium_lot_miv:String
+    medium_opu:String
+    medium_lot_opu:String
+    aspirator:String
+    searcher:String
+    arrived_temperature:String
+    receiver_name:String
+    transport_type:String
+    state:String
+    date:Date
+    received_by:String
+    identification_number:String
+    comments:String
+    details:[AspirationDetail]
+}
+type AspirationDetail {
+    id:ID!
+    local_id:ID
+    aspiration_id:ID!
+    donor:String
+    donor_breed:String
+    arrived_time:String
+    bull:String
+    bull_breed:String
+    type:String
+    gi:String
+    gii:String
+    giii:String
+    others:String
+    local:Local
+}
+type Production{
+    id:ID!
+    order_detail_id:ID!
+    pipes:String
+    lot_oil:String
+    opu_date:Date
+    civ_date:Date
+    civ_lot:String
+    civ_responsible:String
+    medium_sof_o_c4:String
+    f1_o_c4_date:Date
+    f1_o_c4_lot:String
+    f1_o_c4_responsible:String
+    f2_o_c5_date:Date
+    f2_o_c5_lot:String
+    f2_o_c5_responsible:String
+    te_date:Date
+    te_lot:String
+    te_responsible:String
+    vit_o_froz_date:Date
+    vit_o_froz_lot:String
+    vit_o_froz_responsible:String
+    fiv_date:Date
+    fiv_lot:String
+    fiv_responsible:String
+    percoll_date:Date
+    percoll_lot:String
+    percoll_responsible:String
+    heparina_date:Date
+    heparina_lot:String
+    heparina_responsible:String
+    comments:String
+    state:String
+    date:Date
+    arrived_time:String
+    arrived_temperature:String
+    details:[ProductionDetail]
+}
+type ProductionDetail{
+    id:ID!
+    production_id:ID!
+    production:Production
+    aspiration_detail_id:ID!
+    aspirationdetail:AspirationDetail
+    production_summary_id:String
+    civ:String
+    cleavage:String
+    prevision:String
+    bi:String
+    bl:String
+    bx:String
+    bn:String
+    be:String
+    vitrified:String
+    frozen:String
+    lost:String
+}
+type Transfer{
+    id:ID!
+    order_detail_id:ID!
+    received_by:String
+    identification_number:String
+    comments:String
+    state:String
+    date:String
+    details:[TransferDetail]
+}
+type TransferDetail{
+    id:ID!
+    transfer_id:ID!
+    transfer:Transfer
+    production_detail_id:ID!
+    productionDetail:ProductionDetail
+    evaluation_detail_id:String
+    receiver:String
+    embryo:String
+    embryo_class:String
+    corpus_luteum:String
+    transferor:String
+    comments:String
+    attendant:String
+    local_id:String
+    local:Local
+    discard:String
+}
+type Diagnostic{
+    id:ID!
+    order_detail_id:ID!
+    received_by:String
+    identification_number:String
+    comments:String
+    state:String
+    date:Date
+    details:[DiagnosticDetail]
+}
+type DiagnosticDetail{
+    id:ID!
+    diagnostic_id:ID
+    transfer_detail_id:ID
+    dx1:String
+}
+type Sexage{
+    id:ID!
+    order_detail_id:ID
+    received_by:String
+    identification_number:String
+    comments:String
+    details:[SexageDetail]
+}
+type SexageDetail{
+    id:ID
+    sexage_id:ID
+    diagnostic_detail_id:ID
+    sex:String
+}
+type Delivery{
+    id:ID!
+    order_detail_id:ID
+    received_by:String
+    identification_number:String
+    comments:String
+    state:String
+    date:Date
+    details:[DeliveryDetail]
+}
+type DeliveryDetail{
+    id:ID!
+    delivery_id:ID
+    sexage_detail_id:ID
+    dx2:String
+}
+
+type notificationEvalautionCreatUpdate{
+    message:String
+}
